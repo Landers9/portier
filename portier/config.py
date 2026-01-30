@@ -74,3 +74,10 @@ class Config:
         """Liste toutes les catégories"""
         config = self.load()
         return config.get('categories', {})
+
+    def set_range(self, start, end):
+        """Modifie la plage de ports par défaut"""
+        config = self.load()
+        config['range']['start'] = start
+        config['range']['end'] = end
+        self.save(config)

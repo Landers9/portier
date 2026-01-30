@@ -1,8 +1,25 @@
-# Portier 🚪
+# Portier 🔌
 
 **Gestionnaire de ports pour vos applications Docker.**
 
 Portier est un CLI qui résout un problème simple mais fréquent : garder une trace des ports utilisés par vos applications Docker sur un VPS.
+
+---
+
+## Table des matières
+
+- [Le problème](#le-problème)
+- [Prérequis](#prérequis)
+- [Installation](#installation)
+- [Premier lancement](#premier-lancement--intégrer-votre-environnement-existant)
+- [Utilisation quotidienne](#utilisation-quotidienne)
+- [Référence des commandes](#référence-des-commandes)
+- [Configuration](#configuration)
+- [Catégories](#catégories)
+- [Workflows](#workflow-complet--nouvelle-application)
+- [Intégrations](#intégration-avec-docker-compose)
+- [Désinstallation](#désinstallation)
+- [Alternatives](#alternatives)
 
 ---
 
@@ -31,7 +48,7 @@ ports:
 3. Vérifier vos configurations Nginx
 4. Espérer ne pas avoir de conflit
 
-Portier élimine ce problème en maintenant un registre central de tous vos ports.
+**Portier élimine ce problème en maintenant un registre central de tous vos ports.**
 
 ---
 
@@ -52,12 +69,37 @@ Portier élimine ce problème en maintenant un registre central de tous vos port
 # Installer pipx
 sudo apt update
 sudo apt install pipx -y
-pipx ensurepath
-source ~/.bashrc
 
 # Installer portier
 pipx install portier-cli
 ```
+
+#### Problème : `portier: command not found` après l'installation ?
+
+Si vous voyez ce message après l'installation :
+
+```
+⚠️  Note: '/home/user/.local/bin' is not on your PATH environment variable.
+```
+
+Exécutez ces commandes :
+
+```bash
+# Ajouter le dossier au PATH
+pipx ensurepath
+
+# Recharger le terminal
+source ~/.bashrc
+```
+
+Si ça ne fonctionne toujours pas, ajoutez manuellement le PATH :
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
 
 ### Méthode 2 : Avec pip (systèmes plus anciens)
 
@@ -69,28 +111,19 @@ sudo apt install python3-pip -y
 pip install portier-cli
 ```
 
-### Méthode 3 : Dans un environnement virtuel
+#### Problème : `externally-managed-environment` ?
 
-Si vous préférez utiliser un environnement virtuel :
+Sur les systèmes récents (Ubuntu 23.04+, Debian 12+), vous pouvez voir cette erreur :
 
-```bash
-python3 -m venv ~/portier-env
-~/portier-env/bin/pip install portier-cli
-
-# Ajouter un alias pour la commande
-echo 'alias portier="~/portier-env/bin/portier"' >> ~/.bashrc
-source ~/.bashrc
+```
+error: externally-managed-environment
 ```
 
-### Vérifier l'installation
+Dans ce cas, utilisez la **Méthode 1 (pipx)** ou la **Méthode 3 (environnement virtuel)**.
 
-```bash
-portier --help
-```
+#### Problème : `portier: command not found` ?
 
-### La commande `portier` n'est pas trouvée ?
-
-Ajoute le dossier des binaires à ton PATH :
+Ajoutez le dossier des binaires pip à votre PATH :
 
 ```bash
 echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
@@ -99,9 +132,62 @@ source ~/.bashrc
 
 ---
 
+### Méthode 3 : Dans un environnement virtuel
+
+Si vous préférez utiliser un environnement virtuel :
+
+```bash
+# Créer l'environnement
+python3 -m venv ~/portier-env
+
+# Installer portier
+~/portier-env/bin/pip install portier-cli
+
+# Ajouter un alias pour la commande
+echo 'alias portier="~/portier-env/bin/portier"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+---
+
+### Vérifier l'installation
+
+```bash
+# Afficher la version
+portier --version
+
+# Afficher l'aide
+portier --help
+```
+
+Vous devriez voir :
+
+```
+Usage: portier [OPTIONS] COMMAND [ARGS]...
+
+  Portier - Gestionnaire de ports pour vos applications Docker
+
+Options:
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  add         Attribue un port à une nouvelle app
+  categories  Liste les catégories configurées
+  check       Vérifie si un port est disponible
+  config      Gère la configuration de portier
+  init        Initialise portier
+  list        Liste toutes les apps et leurs ports
+  remove      Supprime une app et libère son port
+  scan        Scanne les conteneurs Docker existants
+  sync        Synchronise le registre avec Docker
+```
+
+---
+
 ## Premier lancement : intégrer votre environnement existant
 
-Vous avez probablement déjà des conteneurs Docker qui tournent. Voici comment intégrer portier à votre setup existant :
+Vous avez probablement déjà des conteneurs Docker qui tournent. Voici comment intégrer portier à votre setup existant.
 
 ### Étape 1 : Initialiser portier
 
@@ -178,11 +264,9 @@ portier list
 3 apps · Ports : 3001, 3002, 5432
 ```
 
-Portier connaît maintenant tout votre environnement. À partir de maintenant, utilisez-le pour gérer vos ports.
+**Portier connaît maintenant tout votre environnement.** À partir de maintenant, utilisez-le pour gérer vos ports.
 
----
-
-## Étape 5 (optionnel) : Organiser avec des catégories
+### Étape 5 (optionnel) : Organiser avec des catégories
 
 Pour mieux structurer vos ports, créez des catégories :
 
@@ -435,6 +519,102 @@ portier config remove-category staging
 
 ---
 
+### `portier config set-range`
+
+Modifie la plage de ports par défaut.
+
+```bash
+portier config set-range --start=4000 --end=4999
+```
+
+```
+✓ Plage de ports mise à jour : 4000-4999
+```
+
+**Options :**
+
+| Option    | Description                             |
+| --------- | --------------------------------------- |
+| `--start` | Port de début de la plage (obligatoire) |
+| `--end`   | Port de fin de la plage (obligatoire)   |
+
+Cette plage est utilisée quand vous ajoutez une app sans catégorie.
+
+---
+
+## Configuration
+
+### Configuration de la plage par défaut
+
+Par défaut, portier attribue les ports dans la plage **3000-3999**. Vous pouvez modifier cette plage.
+
+#### Via la commande CLI
+
+```bash
+portier config set-range --start=4000 --end=4999
+```
+
+#### En modifiant le fichier de configuration
+
+```bash
+nano ~/.portier/config.yaml
+```
+
+```yaml
+range:
+  start: 4000
+  end: 4999
+```
+
+### Fichiers de configuration
+
+Portier stocke ses données dans `~/.portier/` :
+
+#### `~/.portier/config.yaml`
+
+Configuration générale et catégories.
+
+```yaml
+range:
+  start: 3000
+  end: 3999
+categories:
+  frontend:
+    range:
+      - 3000
+      - 3099
+    description: Applications frontend
+  backend:
+    range:
+      - 3100
+      - 3199
+    description: APIs backend
+default_category: null
+```
+
+#### `~/.portier/registry.json`
+
+Registre des applications et leurs ports.
+
+```json
+{
+  "apps": {
+    "mon-api": {
+      "port": 3100,
+      "category": "backend",
+      "created_at": "2025-01-30T10:30:00.000000"
+    },
+    "mon-site": {
+      "port": 3000,
+      "category": "frontend",
+      "created_at": "2025-01-30T10:35:00.000000"
+    }
+  }
+}
+```
+
+---
+
 ## Catégories
 
 Les catégories permettent d'organiser vos ports par type d'application. Chaque catégorie a sa propre plage de ports.
@@ -486,55 +666,6 @@ docker compose down
 # 2. Libérer le port dans portier
 portier remove mon-projet
 # ✓ Port 3100 libéré
-```
-
----
-
-## Fichiers de configuration
-
-Portier stocke ses données dans `~/.portier/` :
-
-### `~/.portier/config.yaml`
-
-Configuration générale et catégories.
-
-```yaml
-range:
-  start: 3000
-  end: 3999
-categories:
-  frontend:
-    range:
-      - 3000
-      - 3099
-    description: Applications frontend
-  backend:
-    range:
-      - 3100
-      - 3199
-    description: APIs backend
-default_category: null
-```
-
-### `~/.portier/registry.json`
-
-Registre des applications et leurs ports.
-
-```json
-{
-  "apps": {
-    "mon-api": {
-      "port": 3100,
-      "category": "backend",
-      "created_at": "2025-01-30T10:30:00.000000"
-    },
-    "mon-site": {
-      "port": 3000,
-      "category": "frontend",
-      "created_at": "2025-01-30T10:35:00.000000"
-    }
-  }
-}
 ```
 
 ---

@@ -2,6 +2,7 @@ import click
 from rich.console import Console
 from rich.table import Table
 
+from portier import __version__
 from portier.config import Config
 from portier.registry import Registry
 from portier.scanner import DockerScanner
@@ -11,6 +12,7 @@ console = Console()
 
 
 @click.group()
+@click.version_option(version=__version__, prog_name='portier')
 def main():
     """Portier - Gestionnaire de ports pour vos applications Docker"""
     pass
@@ -317,6 +319,26 @@ def remove_category(name):
     else:
         console.print(f"[red]Erreur : Catégorie '{name}' introuvable[/red]")
 
+@config.command('set-range')
+@click.option('--start', required=True, type=int, help="Port de début de la plage")
+@click.option('--end', required=True, type=int, help="Port de fin de la plage")
+def set_range(start, end):
+    """Modifie la plage de ports par défaut"""
+    if not is_initialized():
+        console.print("[red]Erreur : Portier n'est pas initialisé. Lance 'portier init' d'abord.[/red]")
+        return
+
+    if start >= end:
+        console.print("[red]Erreur : Le port de début doit être inférieur au port de fin[/red]")
+        return
+
+    if start < 1 or end > 65535:
+        console.print("[red]Erreur : Les ports doivent être entre 1 et 65535[/red]")
+        return
+
+    cfg = Config()
+    cfg.set_range(start, end)
+    console.print(f"[green]✓ Plage de ports mise à jour : {start}-{end}[/green]")
 
 if __name__ == '__main__':
     main()
