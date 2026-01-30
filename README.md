@@ -9,6 +9,7 @@ Portier est un CLI qui résout un problème simple mais fréquent : garder une t
 ## Le problème
 
 Vous avez plusieurs applications Docker sur votre serveur. Chacune expose un port :
+
 ```yaml
 # App 1
 ports:
@@ -34,9 +35,66 @@ Portier élimine ce problème en maintenant un registre central de tous vos port
 
 ---
 
+## Prérequis
+
+- Python 3.8 ou supérieur
+- Docker (pour les fonctionnalités de scan et sync)
+
+---
+
 ## Installation
+
+### Méthode 1 : Avec pipx (recommandé)
+
+`pipx` installe les CLI Python dans des environnements isolés. C'est la méthode recommandée sur Ubuntu 23.04+, Debian 12+ et les systèmes récents.
+
 ```bash
-pip install portier
+# Installer pipx
+sudo apt update
+sudo apt install pipx -y
+pipx ensurepath
+source ~/.bashrc
+
+# Installer portier
+pipx install portier-cli
+```
+
+### Méthode 2 : Avec pip (systèmes plus anciens)
+
+Sur Ubuntu 22.04 et versions antérieures :
+
+```bash
+sudo apt update
+sudo apt install python3-pip -y
+pip install portier-cli
+```
+
+### Méthode 3 : Dans un environnement virtuel
+
+Si vous préférez utiliser un environnement virtuel :
+
+```bash
+python3 -m venv ~/portier-env
+~/portier-env/bin/pip install portier-cli
+
+# Ajouter un alias pour la commande
+echo 'alias portier="~/portier-env/bin/portier"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Vérifier l'installation
+
+```bash
+portier --help
+```
+
+### La commande `portier` n'est pas trouvée ?
+
+Ajoute le dossier des binaires à ton PATH :
+
+```bash
+echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
 ```
 
 ---
@@ -46,9 +104,11 @@ pip install portier
 Vous avez probablement déjà des conteneurs Docker qui tournent. Voici comment intégrer portier à votre setup existant :
 
 ### Étape 1 : Initialiser portier
+
 ```bash
 portier init
 ```
+
 ```
 ✓ Portier initialisé
   Plage par défaut : 3000-3999
@@ -59,9 +119,11 @@ portier init
 ### Étape 2 : Scanner vos conteneurs existants
 
 Regardez d'abord ce que portier détecte :
+
 ```bash
 portier scan
 ```
+
 ```
 ┌─────────────────────────┬───────────┬─────────────────┐
 │ Conteneur               │ Port hôte │ Port conteneur  │
@@ -75,9 +137,11 @@ portier scan
 ### Étape 3 : Importer dans le registre
 
 Synchronisez pour importer vos conteneurs existants :
+
 ```bash
 portier sync
 ```
+
 ```
 Synchronisation...
 
@@ -97,9 +161,11 @@ Synchronisation terminée.
 ```
 
 ### Étape 4 : Vérifier le registre
+
 ```bash
 portier list
 ```
+
 ```
 ┌──────────────┬──────┬───────────┬────────┐
 │ App          │ Port │ Catégorie │ Actif  │
@@ -119,6 +185,7 @@ Portier connaît maintenant tout votre environnement. À partir de maintenant, u
 ## Étape 5 (optionnel) : Organiser avec des catégories
 
 Pour mieux structurer vos ports, créez des catégories :
+
 ```bash
 portier config add-category frontend --range=3000-3099 --description="Applications frontend"
 portier config add-category backend --range=3100-3199 --description="APIs backend"
@@ -126,9 +193,11 @@ portier config add-category database --range=5400-5499 --description="Bases de d
 ```
 
 Vérifiez vos catégories :
+
 ```bash
 portier categories
 ```
+
 ```
 ┌──────────┬─────────────┬──────────────────────────┐
 │ Nom      │ Plage       │ Description              │
@@ -144,9 +213,11 @@ portier categories
 ## Utilisation quotidienne
 
 ### Ajouter une nouvelle application
+
 ```bash
 portier add mon-nouveau-projet
 ```
+
 ```
 ✓ Port 3003 attribué à "mon-nouveau-projet"
 
@@ -156,9 +227,11 @@ portier add mon-nouveau-projet
 ```
 
 Avec une catégorie :
+
 ```bash
 portier add mon-api-v2 --category=backend
 ```
+
 ```
 ✓ Port 3100 attribué à "mon-api-v2"
   Catégorie : backend
@@ -169,20 +242,25 @@ portier add mon-api-v2 --category=backend
 ```
 
 ### Vérifier si un port est disponible
+
 ```bash
 portier check 3005
 ```
+
 ```
 ✓ Port 3005 est disponible
 ```
+
 ```bash
 portier check 3001
 ```
+
 ```
 ✗ Port 3001 est utilisé par "mon-api"
 ```
 
 ### Voir tous vos ports
+
 ```bash
 portier list
 ```
@@ -190,10 +268,12 @@ portier list
 ### Supprimer une application
 
 Quand vous supprimez un conteneur, libérez aussi son port :
+
 ```bash
 docker compose down
 portier remove mon-ancien-projet
 ```
+
 ```
 ✓ Port 3003 libéré (app "mon-ancien-projet" supprimée)
 ```
@@ -201,6 +281,7 @@ portier remove mon-ancien-projet
 ### Resynchroniser après des changements manuels
 
 Si vous avez créé ou supprimé des conteneurs sans passer par portier :
+
 ```bash
 portier sync
 ```
@@ -214,6 +295,7 @@ Portier détectera les différences et vous proposera de mettre à jour le regis
 ### `portier init`
 
 Initialise portier. Crée le dossier `~/.portier/` avec les fichiers de configuration.
+
 ```bash
 portier init
 ```
@@ -225,6 +307,7 @@ portier init
 ### `portier add <app>`
 
 Attribue un port à une nouvelle application.
+
 ```bash
 # Attribution automatique
 portier add mon-api
@@ -238,16 +321,17 @@ portier add mon-service --port=4000
 
 **Options :**
 
-| Option | Description |
-|--------|-------------|
+| Option             | Description                                   |
+| ------------------ | --------------------------------------------- |
 | `--category`, `-c` | Catégorie de l'app (utilise la plage définie) |
-| `--port`, `-p` | Port spécifique à attribuer |
+| `--port`, `-p`     | Port spécifique à attribuer                   |
 
 ---
 
 ### `portier list`
 
 Affiche toutes les applications enregistrées et leurs ports.
+
 ```bash
 # Toutes les apps
 portier list
@@ -263,11 +347,13 @@ La colonne "Actif" indique si un conteneur Docker utilise actuellement ce port.
 ### `portier check <port>`
 
 Vérifie si un port est disponible.
+
 ```bash
 portier check 3500
 ```
 
 Retourne :
+
 - ✓ si le port est disponible
 - ✗ si le port est utilisé par une app enregistrée
 - ⚠ si le port est utilisé par Docker mais non enregistré
@@ -277,6 +363,7 @@ Retourne :
 ### `portier remove <app>`
 
 Supprime une application du registre et libère son port.
+
 ```bash
 portier remove mon-api
 ```
@@ -286,6 +373,7 @@ portier remove mon-api
 ### `portier scan`
 
 Affiche tous les conteneurs Docker en cours d'exécution avec leurs ports exposés.
+
 ```bash
 portier scan
 ```
@@ -297,11 +385,13 @@ Utile pour voir l'état actuel avant d'importer dans portier.
 ### `portier sync`
 
 Synchronise le registre avec l'état réel de Docker.
+
 ```bash
 portier sync
 ```
 
 Cette commande :
+
 1. Détecte les apps dans le registre dont le conteneur n'existe plus
 2. Détecte les conteneurs Docker non enregistrés
 3. Propose de nettoyer/ajouter les entrées
@@ -311,6 +401,7 @@ Cette commande :
 ### `portier categories`
 
 Affiche toutes les catégories configurées.
+
 ```bash
 portier categories
 ```
@@ -320,22 +411,24 @@ portier categories
 ### `portier config add-category`
 
 Crée une nouvelle catégorie avec sa plage de ports.
+
 ```bash
 portier config add-category frontend --range=3000-3099 --description="Applications frontend"
 ```
 
 **Options :**
 
-| Option | Description |
-|--------|-------------|
-| `--range` | Plage de ports (obligatoire, format : `start-end`) |
-| `--description`, `-d` | Description de la catégorie (optionnel) |
+| Option                | Description                                        |
+| --------------------- | -------------------------------------------------- |
+| `--range`             | Plage de ports (obligatoire, format : `start-end`) |
+| `--description`, `-d` | Description de la catégorie (optionnel)            |
 
 ---
 
 ### `portier config remove-category`
 
 Supprime une catégorie.
+
 ```bash
 portier config remove-category staging
 ```
@@ -347,6 +440,7 @@ portier config remove-category staging
 Les catégories permettent d'organiser vos ports par type d'application. Chaque catégorie a sa propre plage de ports.
 
 ### Exemple de configuration
+
 ```bash
 portier config add-category frontend --range=3000-3099 --description="Applications frontend"
 portier config add-category backend --range=3100-3199 --description="APIs et services backend"
@@ -364,6 +458,7 @@ portier config add-category production --range=3300-3399 --description="Environn
 ---
 
 ## Workflow complet : nouvelle application
+
 ```bash
 # 1. Demander un port
 portier add mon-nouveau-projet --category=backend
@@ -383,6 +478,7 @@ docker compose up -d
 ---
 
 ## Workflow complet : supprimer une application
+
 ```bash
 # 1. Arrêter et supprimer le conteneur
 docker compose down
@@ -401,6 +497,7 @@ Portier stocke ses données dans `~/.portier/` :
 ### `~/.portier/config.yaml`
 
 Configuration générale et catégories.
+
 ```yaml
 range:
   start: 3000
@@ -422,6 +519,7 @@ default_category: null
 ### `~/.portier/registry.json`
 
 Registre des applications et leurs ports.
+
 ```json
 {
   "apps": {
@@ -446,25 +544,28 @@ Registre des applications et leurs ports.
 Portier ne modifie pas vos fichiers. Il vous indique simplement quel port utiliser.
 
 **Avant :**
+
 ```yaml
 services:
   mon-app:
     image: mon-app:latest
     ports:
-      - "???:3000"  # Quel port choisir ?
+      - "???:3000" # Quel port choisir ?
 ```
 
 **Avec portier :**
+
 ```bash
 portier add mon-app
 # ✓ Port 3001 attribué à "mon-app"
 ```
+
 ```yaml
 services:
   mon-app:
     image: mon-app:latest
     ports:
-      - "3001:3000"  # Port donné par portier
+      - "3001:3000" # Port donné par portier
 ```
 
 ---
@@ -472,10 +573,12 @@ services:
 ## Intégration avec Nginx
 
 Exemple de configuration Nginx utilisant le port attribué par portier :
+
 ```bash
 portier add mon-api --category=backend
 # ✓ Port 3100 attribué
 ```
+
 ```nginx
 server {
     server_name api.monsite.com;
@@ -492,6 +595,28 @@ server {
     ssl_certificate /etc/letsencrypt/live/api.monsite.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/api.monsite.com/privkey.pem;
 }
+```
+
+---
+
+## Désinstallation
+
+### Si installé avec pipx
+
+```bash
+pipx uninstall portier-cli
+```
+
+### Si installé avec pip
+
+```bash
+pip uninstall portier-cli
+```
+
+### Supprimer les fichiers de configuration
+
+```bash
+rm -rf ~/.portier
 ```
 
 ---
@@ -517,3 +642,9 @@ MIT
 ## Contribuer
 
 Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request sur GitHub.
+
+---
+
+## Auteur
+
+Développé par [Franck AÏGBA](https://github.com/Landers9)
