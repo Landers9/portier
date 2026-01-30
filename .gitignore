@@ -1,0 +1,16 @@
+venv/
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+
+# Fichiers locaux
+*.log
+.DS_Store
