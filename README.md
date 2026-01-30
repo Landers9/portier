@@ -18,6 +18,7 @@ Portier est un CLI qui résout un problème simple mais fréquent : garder une t
 - [Catégories](#catégories)
 - [Workflows](#workflow-complet--nouvelle-application)
 - [Intégrations](#intégration-avec-docker-compose)
+- [Mise à jour](#mise-à-jour)
 - [Désinstallation](#désinstallation)
 - [Alternatives](#alternatives)
 
@@ -533,8 +534,8 @@ portier config set-range --start=4000 --end=4999
 
 **Options :**
 
-| Option    | Description                             |
-| --------- | --------------------------------------- |
+| Option    | Description                           |
+| --------- | ------------------------------------- |
 | `--start` | Port de début de la plage (obligatoire) |
 | `--end`   | Port de fin de la plage (obligatoire)   |
 
@@ -726,6 +727,34 @@ server {
     ssl_certificate /etc/letsencrypt/live/api.monsite.com/fullchain.pem;
     ssl_certificate_key /etc/letsencrypt/live/api.monsite.com/privkey.pem;
 }
+```
+
+---
+
+## Mise à jour
+
+### Si installé avec pipx
+
+```bash
+pipx upgrade portier-cli
+```
+
+### Si installé avec pip
+
+```bash
+pip install --upgrade portier-cli
+```
+
+### Si installé dans un environnement virtuel
+
+```bash
+~/portier-env/bin/pip install --upgrade portier-cli
+```
+
+### Vérifier la version après mise à jour
+
+```bash
+portier --version
 ```
 
 ---
